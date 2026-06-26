@@ -1,0 +1,42 @@
+:root {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-primary: #00bc6d;
+  --color-primary-light: #9fe5b1;
+  --color-surface-dark: #050505;
+  --color-surface: #131415;
+  --color-surface-elevated: #222426;
+  --color-muted: #9ba1a5;
+  --color-background: #f5efec;
+  --color-link: #0099ff;
+  --color-transparent: transparent;
+  --color-overlay-light: #0000004d;
+  --color-overlay-strong: #000000b3;
+
+  --bg-deep: #070a08;
+  --bg-base: #0a0e0c;
+  --bg-raised: #0e1411;
+  --accent: #00bc6d;
+  --accent-strong: #00a859;
+  --accent-soft: rgba(0, 188, 109, 0.14);
+  --accent-glow: rgba(0, 188, 109, 0.2);
+  --gold: #d8b765;
+  --gold-soft: rgba(216, 183, 101, 0.16);
+  --text-primary: #f5f6f5;
+  --text-secondary: #aab2ad;
+  --text-faint: #6b746f;
+  --hairline: rgba(245, 246, 245, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.035);
+  --glass-border: rgba(255, 255, 255, 0.09);
+
+  --font-display: "Thmanyah Serif Display", "Times New Roman", serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --font-family: var(--font-body);
+
+  --max-width: 1200px;
+  --section-pad-y: clamp(5rem, 12vw, 9rem);
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}

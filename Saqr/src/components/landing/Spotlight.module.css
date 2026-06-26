@@ -1,0 +1,46 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.light {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+}
+
+.flood {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    70% 50% at 50% 0%,
+    rgba(0, 188, 109, 0.05),
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  animation: floodlight 7s var(--ease-in-out) infinite;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    120% 85% at 50% 38%,
+    transparent 30%,
+    rgba(4, 6, 5, 0.5) 78%,
+    rgba(3, 5, 4, 0.82) 100%
+  );
+}
+
+@keyframes floodlight {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
