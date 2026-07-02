@@ -1,0 +1,13 @@
+services:
+  backend:
+    build: ./Saqr_Backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - db-data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:///./data/saqr.db
+    restart: unless-stopped
+
+volumes:
+  db-data:

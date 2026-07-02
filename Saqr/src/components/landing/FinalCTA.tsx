@@ -20,7 +20,7 @@ const footerReveal = {
   },
 };
 
-export function FinalCTA({ onStart }: { onStart: () => void }) {
+export function FinalCTA({ onStart, starting = false }: { onStart: () => void; starting?: boolean }) {
   const year = "٢٠٢٦";
 
   return (
@@ -42,8 +42,8 @@ export function FinalCTA({ onStart }: { onStart: () => void }) {
         <p className={styles.sub}>
           أنشئ مواجهتك خلال دقائق، اجمع أصحابك، ودع التحدّي يبدأ.
         </p>
-        <button onClick={onStart} className={styles.btn}>
-          ابدأ اللعبة
+        <button onClick={onStart} className={styles.btn} disabled={starting}>
+          {starting ? "جاري التحميل..." : "ابدأ اللعبة ⚽"}
           <span className={styles.glow} aria-hidden="true" />
         </button>
       </motion.div>

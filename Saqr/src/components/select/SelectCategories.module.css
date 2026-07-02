@@ -80,6 +80,13 @@
   line-height: 1.8;
 }
 
+.gameLabel {
+  margin-top: 0.6rem;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  color: var(--accent, #c8f542);
+  font-weight: 700;
+}
+
 .counterRow {
   display: flex;
   align-items: center;

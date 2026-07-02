@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { categories as allCategories } from "../../data/categories";
 import { Spotlight } from "../landing/Spotlight";
+import { UserBar } from "../shared/UserBar";
 import styles from "./TeamNames.module.css";
 
 const aids = [
@@ -15,6 +16,7 @@ export function TeamNames() {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedCategories: number[] = location.state?.categories ?? [];
+  const gameId: number | undefined = location.state?.gameId;
 
   const [team1, setTeam1] = useState<string>(location.state?.team1 ?? "");
   const [team2, setTeam2] = useState<string>(location.state?.team2 ?? "");
@@ -36,6 +38,7 @@ export function TeamNames() {
       </div>
 
       <Spotlight />
+      <UserBar />
 
       <motion.div
         className={styles.content}
@@ -44,7 +47,7 @@ export function TeamNames() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className={styles.header}>
-          <Link to="/select" state={{ categories: selectedCategories }} className={styles.backLink}>
+          <Link to="/select" state={{ categories: selectedCategories, gameId }} className={styles.backLink}>
             → الرجوع
           </Link>
           <h1 className={styles.title}>أسماء الفرق</h1>
@@ -83,11 +86,11 @@ export function TeamNames() {
               dir="rtl"
               lang="ar"
             />
-            {canStart && (
+            <div className={`${styles.aidsWrap} ${canStart ? styles.aidsShow : ""}`}>
               <div className={styles.aidsRow}>
                 <TeamAids expanded={expanded} onToggle={toggleAid} prefix="t1" />
               </div>
-            )}
+            </div>
           </div>
 
           <span className={styles.vs}>ضد</span>
@@ -109,11 +112,15 @@ export function TeamNames() {
               dir="rtl"
               lang="ar"
             />
-            {canStart && (
+            <div className={`${styles.aidsWrap} ${canStart ? styles.aidsShow : ""}`}>
               <div className={styles.aidsRow}>
                 <TeamAids expanded={expanded} onToggle={toggleAid} prefix="t2" />
               </div>
-            )}
+            </div>
+          </div>
+
+          <div className={`${styles.noteWrap} ${canStart ? styles.noteHide : ""}`}>
+            <p className={styles.note}>ملاحظة: الأسماء تُكتب بالعربية</p>
           </div>
 
           {canStart && (
@@ -121,7 +128,7 @@ export function TeamNames() {
               <button
                 className={styles.startBtn}
                 onClick={() => navigate("/game", {
-                  state: { categories: selectedCategories, team1: team1.trim(), team2: team2.trim() },
+                  state: { categories: selectedCategories, team1: team1.trim(), team2: team2.trim(), gameId },
                 })}
               >
                 ابدأ المواجهة

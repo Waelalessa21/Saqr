@@ -233,9 +233,54 @@
   opacity: 0.5;
 }
 
+.noteWrap {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+}
+
+.noteWrap > * {
+  overflow: hidden;
+}
+
+.noteHide {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.note {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  padding-top: 0.3rem;
+}
+
+.aidsWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.aidsWrap > * {
+  overflow: hidden;
+}
+
+.aidsShow {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 .aidsRow {
   margin-top: 0.8rem;
-  animation: softIn 0.5s var(--ease-out) both;
 }
 
 @keyframes softIn {

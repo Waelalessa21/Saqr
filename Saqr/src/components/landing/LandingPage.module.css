@@ -40,3 +40,74 @@
   position: relative;
   z-index: 1;
 }
+
+/* ── User bar ── */
+
+.userBar {
+  position: fixed;
+  top: 1.2rem;
+  left: 1.5rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+}
+
+.userIcon {
+  font-size: 1rem;
+}
+
+.greeting {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+.userName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.logoutBtn {
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.2s var(--ease-out);
+}
+
+.logoutBtn:hover {
+  color: var(--text-primary);
+}
+
+/* ── Toast ── */
+
+.toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 200;
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: rgba(0, 188, 109, 0.1);
+  backdrop-filter: blur(12px);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+  white-space: nowrap;
+}

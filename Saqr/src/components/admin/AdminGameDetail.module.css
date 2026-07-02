@@ -1,0 +1,442 @@
+.page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: var(--bg-deep);
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 5rem var(--gutter) 3rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.backLink {
+  color: var(--text-faint);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--text-primary);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.badge {
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+
+.badgeDraft {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.badgePublished {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.publishBtn {
+  padding: 0.6rem 1.3rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.publishBtn:hover {
+  background: var(--accent-strong);
+}
+
+.uploadBtn {
+  padding: 0.6rem 1.3rem;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.uploadBtn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.uploadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unpublishBtn {
+  padding: 0.6rem 1.3rem;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.unpublishBtn:hover {
+  border-color: var(--text-faint);
+}
+
+/* ── Category sections ── */
+
+.catSection {
+  margin-bottom: 2rem;
+}
+
+.catHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.catIcon {
+  font-size: 1.2rem;
+}
+
+.catTitle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.catCount {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+/* ── Points group ── */
+
+.pointsGroup {
+  margin-bottom: 1rem;
+  margin-right: 0.5rem;
+}
+
+.pointsLabel {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 600;
+  font-family: var(--font-body);
+  margin-bottom: 0.4rem;
+}
+
+.questionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.questionCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.questionBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.questionText {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.optionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.option {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-faint);
+}
+
+.optionCorrect {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.questionAnswer {
+  font-size: 0.78rem;
+  color: var(--accent);
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qDeleteBtn {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.qDeleteBtn:hover {
+  color: #e74c3c;
+}
+
+/* ── Edit form ── */
+
+.editForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.editLabel {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  font-family: var(--font-body);
+}
+
+.editInput {
+  flex: 1;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.editInput:focus {
+  border-color: var(--accent);
+}
+
+.editOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.editOptionRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.editAddOptBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--accent);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.editAddOptBtn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.editAddOptBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.editSaveBtn {
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.editSaveBtn:hover {
+  background: var(--accent-strong);
+}
+
+.editCancelBtn {
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: none;
+  color: var(--text-faint);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.editCancelBtn:hover {
+  color: var(--text-primary);
+}
+
+/* ── Add question form ── */
+
+.addForm {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.addInputs {
+  flex: 1;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.addInput {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.addInput::placeholder {
+  color: var(--text-faint);
+}
+
+.addInput:focus {
+  border-color: var(--accent);
+}
+
+.addBtn {
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.addBtn:hover {
+  background: var(--accent-strong);
+}
+
+.addBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-faint);
+  padding: 3rem 0;
+}

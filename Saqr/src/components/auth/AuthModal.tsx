@@ -1,15 +1,10 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { apiSignup, apiLogin, apiVerifyOtp, apiResendOtp, saveToken, saveUser } from "../../api";
 import styles from "./AuthModal.module.css";
 
 type Mode = "login" | "signup";
+type Step = "form" | "otp";
 
 const REFERRAL_OPTIONS = [
   "تويتر / X",
@@ -20,15 +15,34 @@ const REFERRAL_OPTIONS = [
   "أخرى",
 ];
 
-export function AuthModal({ onClose }: { onClose: () => void }) {
+const OTP_LENGTH = 6;
+
+export type AuthUser = { name: string; role: string };
+
+export function AuthModal({ onClose }: { onClose: (user?: AuthUser) => void }) {
   const [mode, setMode] = useState<Mode>("login");
+  const [step, setStep] = useState<Step>("form");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [pass, setPass] = useState("");
   const [passConfirm, setPassConfirm] = useState("");
   const [referral, setReferral] = useState("");
+  const [otp, setOtp] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  const loginReady = email.trim().length > 0 && pass.length >= 6;
+  const signupReady =
+    name.trim().length > 0 &&
+    email.trim().length > 0 &&
+    pass.length >= 6 &&
+    passConfirm.length >= 6 &&
+    pass === passConfirm &&
+    referral.length > 0;
+  const formReady = mode === "login" ? loginReady : signupReady;
 
   const reset = () => {
     setError("");
@@ -37,11 +51,19 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
     setPass("");
     setPassConfirm("");
     setReferral("");
+    setOtp("");
+    setPendingEmail("");
+    setStep("form");
   };
 
   const switchMode = (m: Mode) => {
     reset();
     setMode(m);
+  };
+
+  const finishAuth = (user: AuthUser) => {
+    setSuccess(true);
+    setTimeout(() => onClose(user), 1100);
   };
 
   const handleSignup = async () => {
@@ -50,52 +72,119 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
     if (pass.length < 6) return setError("كلمة المرور يجب أن تكون ٦ أحرف على الأقل");
     if (pass !== passConfirm) return setError("كلمة المرور غير متطابقة");
 
-    if (!auth || !db) return setError("Firebase غير مُعد");
     setLoading(true);
     setError("");
     try {
-      const cred = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(cred.user, { displayName: name.trim() });
-      await setDoc(doc(db, "users", cred.user.uid), {
+      const data = await apiSignup({
         name: name.trim(),
         email,
+        password: pass,
         referral: referral || null,
-        createdAt: new Date().toISOString(),
       });
-      onClose();
+      setPendingEmail(data.email);
+      setStep("otp");
+      setOtp("");
     } catch (e: any) {
-      if (e.code === "auth/email-already-in-use") setError("البريد مستخدم بالفعل");
-      else if (e.code === "auth/invalid-email") setError("بريد إلكتروني غير صالح");
-      else setError("حدث خطأ، حاول مرة أخرى");
-    } finally {
-      setLoading(false);
+      setError(e.message);
     }
+    setLoading(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otp.trim().length !== 6) return setError("أدخل رمز التحقق المكوّن من ٦ أرقام");
+
+    setLoading(true);
+    setError("");
+    try {
+      const data = await apiVerifyOtp({ email: pendingEmail, code: otp.trim() });
+      saveToken(data.token);
+      saveUser(data.user);
+      setLoading(false);
+      finishAuth({ name: data.user.name, role: data.user.role });
+    } catch (e: any) {
+      setLoading(false);
+      setError(e.message);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingEmail || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      await apiResendOtp(pendingEmail);
+      setOtp("");
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setLoading(false);
   };
 
   const handleLogin = async () => {
     if (!email.trim()) return setError("أدخل بريدك الإلكتروني");
     if (!pass) return setError("أدخل كلمة المرور");
-    if (!auth) return setError("Firebase غير مُعد");
 
     setLoading(true);
     setError("");
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      onClose();
-    } catch (e: any) {
-      if (e.code === "auth/user-not-found" || e.code === "auth/wrong-password" || e.code === "auth/invalid-credential")
-        setError("البريد أو كلمة المرور غير صحيحة");
-      else if (e.code === "auth/invalid-email") setError("بريد إلكتروني غير صالح");
-      else setError("حدث خطأ، حاول مرة أخرى");
-    } finally {
+      const data = await apiLogin({ email, password: pass });
+      saveToken(data.token);
+      saveUser(data.user);
       setLoading(false);
+      finishAuth({ name: data.user.name, role: data.user.role });
+    } catch (e: any) {
+      setLoading(false);
+      if (e.message === "verify_email") {
+        setPendingEmail(email);
+        setStep("otp");
+        setOtp("");
+        setError("فعّل بريدك برمز التحقق المرسل");
+        return;
+      }
+      setError(e.message);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (step === "otp") {
+      handleVerifyOtp();
+      return;
+    }
     if (mode === "signup") handleSignup();
     else handleLogin();
+  };
+
+  const maskEmail = (value: string) => {
+    const [local, domain] = value.split("@");
+    if (!domain) return value;
+    const visible = local.slice(0, 2);
+    return `${visible}***@${domain}`;
+  };
+
+  const otpDigits = Array.from({ length: OTP_LENGTH }, (_, i) => otp[i] ?? "");
+
+  const setOtpDigit = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const next = otpDigits.map((d, i) => (i === index ? digit : d));
+    setOtp(next.join("").trimEnd());
+    if (digit && index < OTP_LENGTH - 1) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(pasted);
+    const focusIndex = Math.min(pasted.length, OTP_LENGTH - 1);
+    otpRefs.current[focusIndex]?.focus();
   };
 
   return (
@@ -105,7 +194,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      onClick={onClose}
+      onClick={() => onClose()}
     >
       <motion.div
         className={styles.modal}
@@ -117,103 +206,175 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         dir="rtl"
         lang="ar"
       >
-        <button className={styles.close} onClick={onClose}>✕</button>
-
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${mode === "login" ? styles.tabActive : ""}`}
-            onClick={() => switchMode("login")}
+        {success ? (
+          <motion.div
+            className={styles.successView}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
-            تسجيل دخول
-          </button>
-          <button
-            className={`${styles.tab} ${mode === "signup" ? styles.tabActive : ""}`}
-            onClick={() => switchMode("signup")}
-          >
-            حساب جديد
-          </button>
-        </div>
-
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={mode}
-              className={styles.fields}
-              initial={{ opacity: 0, x: mode === "signup" ? 20 : -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: mode === "signup" ? -20 : 20 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            <motion.span
+              className={styles.successCheck}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 }}
             >
-              {mode === "signup" && (
-                <input
-                  className={styles.input}
-                  type="text"
-                  placeholder="الاسم"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  autoComplete="name"
-                />
-              )}
+              ✓
+            </motion.span>
+            <span className={styles.successText}>حياك يالصقر</span>
+          </motion.div>
+        ) : step === "otp" ? (
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.otpHead}>
+              <h3 className={styles.otpTitle}>تحقق من بريدك</h3>
+              <p className={styles.otpSub}>
+                أدخل رمز التحقق المرسل إلى
+                <span className={styles.otpEmail} dir="ltr">{maskEmail(pendingEmail)}</span>
+              </p>
+            </div>
 
-              <input
-                className={styles.input}
-                type="email"
-                placeholder="البريد الإلكتروني"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                dir="ltr"
-              />
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>رمز التحقق</label>
+              <div className={styles.otpPins} dir="ltr">
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => { otpRefs.current[index] = el; }}
+                    className={styles.otpPin}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => setOtpDigit(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onPaste={handleOtpPaste}
+                    autoFocus={index === 0}
+                    aria-label={`رمز ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
 
-              <input
-                className={styles.input}
-                type="password"
-                placeholder="كلمة المرور"
-                value={pass}
-                onChange={(e) => setPass(e.target.value)}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              />
+            {error && <p className={styles.error}>{error}</p>}
 
-              {mode === "signup" && (
-                <>
+            <button className={styles.submit} type="submit" disabled={loading || otp.length !== OTP_LENGTH}>
+              {loading ? <span className={styles.spinner} /> : "تحقق"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.resendBtn}
+              onClick={handleResendOtp}
+              disabled={loading}
+            >
+              إعادة إرسال الرمز
+            </button>
+          </form>
+        ) : (
+          <>
+            <div className={styles.tabs}>
+              <button
+                className={`${styles.tab} ${mode === "login" ? styles.tabActive : ""}`}
+                onClick={() => switchMode("login")}
+              >
+                تسجيل دخول
+              </button>
+              <button
+                className={`${styles.tab} ${mode === "signup" ? styles.tabActive : ""}`}
+                onClick={() => switchMode("signup")}
+              >
+                حساب جديد
+              </button>
+            </div>
+
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <div className={styles.fields}>
+                <div className={`${styles.signupOnly} ${mode === "signup" ? styles.signupShow : ""}`}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label}>الاسم</label>
+                    <input
+                      className={styles.input}
+                      type="text"
+                      placeholder="محمد العلي"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="name"
+                      tabIndex={mode === "signup" ? 0 : -1}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>البريد الإلكتروني</label>
+                  <input
+                    className={styles.input}
+                    type="email"
+                    placeholder="mohammed@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>كلمة المرور</label>
                   <input
                     className={styles.input}
                     type="password"
-                    placeholder="تأكيد كلمة المرور"
-                    value={passConfirm}
-                    onChange={(e) => setPassConfirm(e.target.value)}
-                    autoComplete="new-password"
+                    placeholder="*******"
+                    value={pass}
+                    onChange={(e) => setPass(e.target.value)}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   />
+                </div>
 
-                  <select
-                    className={styles.select}
-                    value={referral}
-                    onChange={(e) => setReferral(e.target.value)}
-                  >
-                    <option value="">كيف سمعت عنّا؟</option>
-                    {REFERRAL_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
+                <div className={`${styles.signupOnly} ${mode === "signup" ? styles.signupShow : ""}`}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label}>تأكيد كلمة المرور</label>
+                    <input
+                      className={styles.input}
+                      type="password"
+                      placeholder="*******"
+                      value={passConfirm}
+                      onChange={(e) => setPassConfirm(e.target.value)}
+                      autoComplete="new-password"
+                      tabIndex={mode === "signup" ? 0 : -1}
+                    />
+                  </div>
+                </div>
 
-          {error && <p className={styles.error}>{error}</p>}
+                <div className={`${styles.signupOnly} ${mode === "signup" ? styles.signupShow : ""}`}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.label}>كيف سمعت عنّا؟</label>
+                    <select
+                      className={styles.select}
+                      value={referral}
+                      onChange={(e) => setReferral(e.target.value)}
+                      tabIndex={mode === "signup" ? 0 : -1}
+                    >
+                      <option value="">اختر...</option>
+                      {REFERRAL_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-          <button
-            className={styles.submit}
-            type="submit"
-            disabled={loading}
-          >
-            {loading
-              ? "..."
-              : mode === "login"
-                ? "دخول"
-                : "إنشاء حساب"}
-          </button>
-        </form>
+              {error && <p className={styles.error}>{error}</p>}
+
+              <button className={styles.submit} type="submit" disabled={loading || !formReady}>
+                {loading
+                  ? <span className={styles.spinner} />
+                  : mode === "login"
+                    ? "دخول"
+                    : "إنشاء حساب"}
+              </button>
+            </form>
+          </>
+        )}
       </motion.div>
     </motion.div>
   );

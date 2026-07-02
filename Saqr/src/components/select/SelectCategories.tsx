@@ -1,20 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { fetchGameEntry, getToken } from "../../api";
 import { categories } from "../../data/categories";
 import { Spotlight } from "../landing/Spotlight";
+import { UserBar } from "../shared/UserBar";
 import styles from "./SelectCategories.module.css";
 
 const MAX = 6;
 
-const toArabicNum = (n: number) =>
-  String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]);
-
 export function SelectCategories() {
   const location = useLocation();
   const navigate = useNavigate();
+  const gameId: number | undefined = location.state?.gameId;
+  const gameTitle: string | undefined = location.state?.gameTitle;
+  const gameNumber: number | undefined = location.state?.gameNumber;
+  const totalGames: number | undefined = location.state?.totalGames;
+  const allCompleted: boolean | undefined = location.state?.allCompleted;
   const restored: number[] = location.state?.categories ?? [];
   const [selected, setSelected] = useState<number[]>(restored);
+
+  const toArabicNum = (n: number) =>
+    String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d]);
+
+  const gameLabel = gameNumber && totalGames
+    ? `اللعبة ${toArabicNum(gameNumber)} من ${toArabicNum(totalGames)}`
+    : gameTitle;
+
+  useEffect(() => {
+    if (gameId || !getToken()) return;
+    fetchGameEntry(getToken()!)
+      .then((entry) => {
+        if (entry.action === "resume" && entry.session && entry.game_id) {
+          navigate("/game", {
+            replace: true,
+            state: {
+              gameId: entry.game_id,
+              categories: entry.session.categories,
+              team1: entry.session.team1,
+              team2: entry.session.team2,
+              resume: {
+                scores: [entry.session.score1, entry.session.score2],
+                turn: entry.session.turn,
+                answered: entry.session.answered,
+                results: entry.session.results,
+                usedPowerUps: entry.session.used_power_ups,
+              },
+            },
+          });
+          return;
+        }
+        if (entry.action === "new" && entry.game_id) {
+          navigate("/select", {
+            replace: true,
+            state: {
+              gameId: entry.game_id,
+              gameTitle: entry.game_title,
+              gameNumber: entry.game_number,
+              totalGames: entry.total_games,
+              allCompleted: entry.all_completed,
+            },
+          });
+        }
+      })
+      .catch(() => {});
+  }, [gameId, navigate]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token || !gameId) return;
+    fetchGameEntry(token)
+      .then((entry) => {
+        if (entry.action === "resume" && entry.game_id) {
+          navigate("/", { replace: true });
+          return;
+        }
+        if (entry.action === "new" && entry.game_id && entry.game_id !== gameId) {
+          navigate("/select", {
+            replace: true,
+            state: {
+              gameId: entry.game_id,
+              gameTitle: entry.game_title,
+              gameNumber: entry.game_number,
+              totalGames: entry.total_games,
+              allCompleted: entry.all_completed,
+            },
+          });
+        }
+      })
+      .catch(() => {});
+  }, [gameId, navigate]);
 
   const toggle = (id: number) => {
     setSelected((prev) =>
@@ -33,6 +108,7 @@ export function SelectCategories() {
       </div>
 
       <Spotlight />
+      <UserBar />
 
       <div className={styles.content}>
         <div className={styles.header}>
@@ -40,6 +116,12 @@ export function SelectCategories() {
             → الرجوع
           </Link>
           <h1 className={styles.title}>اختر فئاتك</h1>
+          {gameLabel && (
+            <p className={styles.gameLabel}>
+              {gameLabel}
+              {allCompleted ? " — إعادة من البداية" : ""}
+            </p>
+          )}
           <p className={styles.subtitle}>
             اختر ٦ فئات من بين ١٢ لبدء المواجهة
           </p>
@@ -98,7 +180,7 @@ export function SelectCategories() {
           <button
             className={styles.startBtn}
             disabled={selected.length < MAX}
-            onClick={() => navigate("/teams", { state: { categories: selected } })}
+            onClick={() => navigate("/teams", { state: { categories: selected, gameId } })}
           >
             حدد الفرق
             <span className={styles.btnGlow} aria-hidden="true" />

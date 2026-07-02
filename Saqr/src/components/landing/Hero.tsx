@@ -59,7 +59,7 @@ function OrbitImage({ image, angle, spin, radius, opacity, scale }: OrbitImagePr
   );
 }
 
-export function Hero({ onStart }: { onStart: () => void }) {
+export function Hero({ onStart, starting = false }: { onStart: () => void; starting?: boolean }) {
   const ref = useRef<HTMLElement>(null);
 
   const [reduced] = useState(
@@ -172,8 +172,8 @@ export function Hero({ onStart }: { onStart: () => void }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
         >
-          <button onClick={onStart} className={styles.cta}>
-            ابدأ اللعبة
+          <button onClick={onStart} className={styles.cta} disabled={starting}>
+            {starting ? "جاري التحميل..." : "ابدأ اللعبة ⚽"}
             <span className={styles.ctaGlow} aria-hidden="true" />
           </button>
         </motion.div>
