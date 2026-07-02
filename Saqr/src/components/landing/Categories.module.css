@@ -1,6 +1,7 @@
 .section {
   position: relative;
-  padding-block: var(--section-pad-y);
+  padding-top: var(--section-pad-y);
+  padding-bottom: clamp(2rem, 5vw, 3rem);
   padding-inline: var(--gutter);
 }
 

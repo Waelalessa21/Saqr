@@ -209,7 +209,7 @@ export function GameBoard() {
     const cell = activeCell;
 
     setScores((prev) => {
-      const next = [...prev];
+      const next: [number, number] = [...prev];
       next[teamIndex] += points;
       return next;
     });

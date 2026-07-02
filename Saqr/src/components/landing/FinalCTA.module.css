@@ -1,11 +1,14 @@
 .section {
   padding-inline: var(--gutter);
-  padding-top: var(--section-pad-y);
+  padding-top: clamp(1.5rem, 4vw, 2.5rem);
+  padding-bottom: 0;
 }
 
 .cta {
   position: relative;
-  max-width: 960px;
+  width: 100%;
+  max-width: var(--max-width);
+  min-height: clamp(26rem, 52vh, 34rem);
   margin-inline: auto;
   text-align: center;
   padding: clamp(3rem, 8vw, 6rem) clamp(1.5rem, 5vw, 4rem);
@@ -20,6 +23,34 @@
   isolation: isolate;
 }
 
+.bgMedia {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.bgVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  transform-origin: center center;
+}
+
+.videoOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(160deg, rgba(4, 20, 12, 0.78), rgba(4, 20, 12, 0.52)),
+    linear-gradient(160deg, rgba(0, 188, 109, 0.14), transparent 62%);
+  pointer-events: none;
+}
+
 .ctaGlow {
   position: absolute;
   inset-inline-start: 50%;
@@ -28,7 +59,14 @@
   height: 80%;
   transform: translateX(-50%);
   background: radial-gradient(circle, var(--accent-soft), transparent 70%);
-  z-index: -1;
+  z-index: 1;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ctaContent {
+  position: relative;
+  z-index: 2;
 }
 
 .kicker {
@@ -101,9 +139,11 @@
 }
 
 .footer {
+  width: 100%;
   max-width: var(--max-width);
   margin: clamp(4rem, 10vw, 7rem) auto 0;
-  padding-block: 2.4rem;
+  padding-top: 2.4rem;
+  padding-bottom: 2rem;
   border-top: 1px solid var(--hairline);
 }
 
